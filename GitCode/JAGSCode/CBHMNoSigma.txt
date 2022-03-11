@@ -1,0 +1,7 @@
+model{
+ for(k in 1:N){
+ y[k] ~ dbin(p[k],n[k])
+ p[k] <- exp(theta)/(1+exp(theta))
+ }
+ theta ~ dnorm(-1.34,(1/100))
+}
