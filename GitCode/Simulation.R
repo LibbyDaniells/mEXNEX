@@ -231,8 +231,8 @@ EXNEX_OC <- function(p,n,cut_exnex,run,pw){
       return(fun)
     }
     y <- no.successes
-    nexmu <- log(pw/(1-pw)) #NEX mu parameter
-    nexsigma <- (1/pw)+(1/(1-pw)) #NEX sigma parameter
+    nexmu <- rep(log(pw/(1-pw)),length(p)) #NEX mu parameter
+    nexsigma <- rep((1/pw)+(1/(1-pw)),length(p)) #NEX sigma parameter
     prob <- c(0.5,0.5) #Fixed mixture weights
     N <- length(p)
     jags.data <- list('n'=n,'y'=y,'N'=N,'nexmu'=nexmu,'nexsigma'=nexsigma,'prob'=prob)
@@ -347,8 +347,8 @@ mEXNEX_OC <- function(p,n,cut_mexnex,run,pw,c){
       return(fun)
     }
     y <- no.successes
-    nexmu <- log(pw/(1-pw)) #NEX mu parameter
-    nexsigma <- (1/pw)+(1/(1-pw)) #NEX sigma parameter
+    nexmu <- rep(log(pw/(1-pw)),length(p)) #NEX mu parameter
+    nexsigma <- rep((1/pw)+(1/(1-pw)),length(p)) #NEX sigma parameter
     prob <- pi_fun_H(y,n,c) #Compute EX/NEX probabilities using averaged Hellinger distances
     prob <- cbind(prob,1-prob)
     N <- length(p)
@@ -431,8 +431,8 @@ mEXNEXmin_OC <- function(p,n,cut_mexnexmin,run,pw){
       return(fun)
     }
     y <- no.successes
-    nexmu <- log(pw/(1-pw)) #NEX mu parameter
-    nexsigma <- (1/pw)+(1/(1-pw)) #NEX sigma parameter
+    nexmu <- rep(log(pw/(1-pw)),length(p)) #NEX mu parameter
+    nexsigma <- rep((1/pw)+(1/(1-pw)),length(p)) #NEX sigma parameter
     prob <- pi_fun_H_min(y,n) #Compute EX/NEX probabilities using minimum Hellinger distances
     prob <- cbind(prob,1-prob)
     N <- length(p)
@@ -575,7 +575,7 @@ BMA_OC <- function(p,n,run,piA,cut){
   for(j in 1:run){
     for(i in 1:length(p)){
       no.successes[i] <- rbinom(1,n[i],p[i])} #Generate data
-    mod <- model_averaging(no.successes,n,piA,0.2) #Conduct Bayesian model averaging
+    mod <- model_averaging(no.successes,n,piA,0.15) #Conduct Bayesian model averaging
     hypo[j,] <- as.numeric(mod$`Decision Probabilities`>cut_bma) #Accept/reject the null hypothesis
   }
   perfect <- 0
@@ -640,7 +640,7 @@ EXNEXSc1 <- EXNEX_OC(p1,n,cut_exnex,run,pw)
 mEXNEXcSc1 <- mEXNEX_OC(p1,n,cut_mexnexc,run,pw,0.05)
 mEXNEXSc1 <- mEXNEX_OC(p1,n,cut_mexnex,run,pw,0.1)
 mEXNEXminSc1 <- mEXNEXmin_OC(p1,n,cut_mexnexmin,run,pw)
-BMASc1 <- BMA_OC(p1,n,run,piA,bma_cut)
+BMASc1 <- BMA_OC(p1,n,run,piA,cut_bma)
 
 #Scenario 2
 IndSc2 <- Ind_OC(p2,n,cut_ind,run)
@@ -650,7 +650,7 @@ EXNEXSc2 <- EXNEX_OC(p2,n,cut_exnex,run,pw)
 mEXNEXcSc2 <- mEXNEX_OC(p2,n,cut_mexnexc,run,pw,0.05)
 mEXNEXSc2 <- mEXNEX_OC(p2,n,cut_mexnex,run,pw,0.1)
 mEXNEXminSc2 <- mEXNEXmin_OC(p2,n,cut_mexnexmin,run,pw)
-BMASc2 <- BMA_OC(p2,n,run,piA,bma_cut)
+BMASc2 <- BMA_OC(p2,n,run,piA,cut_bma)
 
 #Scenario 3
 IndSc3 <- Ind_OC(p3,n,cut_ind,run)
@@ -660,7 +660,7 @@ EXNEXSc3 <- EXNEX_OC(p3,n,cut_exnex,run,pw)
 mEXNEXcSc3 <- mEXNEX_OC(p3,n,cut_mexnexc,run,pw,0.05)
 mEXNEXSc3 <- mEXNEX_OC(p3,n,cut_mexnex,run,pw,0.1)
 mEXNEXminSc3 <- mEXNEXmin_OC(p3,n,cut_mexnexmin,run,pw)
-BMASc3 <- BMA_OC(p3,n,run,piA,bma_cut)
+BMASc3 <- BMA_OC(p3,n,run,piA,cut_bma)
 
 #Scenario 4
 IndSc4 <- Ind_OC(p4,n,cut_ind,run)
@@ -670,7 +670,7 @@ EXNEXSc4 <- EXNEX_OC(p4,n,cut_exnex,run,pw)
 mEXNEXcSc4 <- mEXNEX_OC(p4,n,cut_mexnexc,run,pw,0.05)
 mEXNEXSc4 <- mEXNEX_OC(p4,n,cut_mexnex,run,pw,0.1)
 mEXNEXminSc4 <- mEXNEXmin_OC(p4,n,cut_mexnexmin,run,pw)
-BMASc4 <- BMA_OC(p4,n,run,piA,bma_cut)
+BMASc4 <- BMA_OC(p4,n,run,piA,cut_bma)
 
 #Scenario 5
 IndSc5 <- Ind_OC(p5,n,cut_ind,run)
@@ -680,7 +680,7 @@ EXNEXSc5 <- EXNEX_OC(p5,n,cut_exnex,run,pw)
 mEXNEXcSc5 <- mEXNEX_OC(p5,n,cut_mexnexc,run,pw,0.05)
 mEXNEXSc5 <- mEXNEX_OC(p5,n,cut_mexnex,run,pw,0.1)
 mEXNEXminSc5 <- mEXNEXmin_OC(p5,n,cut_mexnexmin,run,pw)
-BMASc5 <- BMA_OC(p5,n,run,piA,bma_cut)
+BMASc5 <- BMA_OC(p5,n,run,piA,cut_bma)
 
 #Scenario 6
 IndSc6 <- Ind_OC(p6,n,cut_ind,run)
@@ -690,4 +690,4 @@ EXNEXSc6 <- EXNEX_OC(p6,n,cut_exnex,run,pw)
 mEXNEXcSc6 <- mEXNEX_OC(p6,n,cut_mexnexc,run,pw,0.05)
 mEXNEXSc6 <- mEXNEX_OC(p6,n,cut_mexnex,run,pw,0.1)
 mEXNEXminSc6 <- mEXNEXmin_OC(p6,n,cut_mexnexmin,run,pw)
-BMASc6 <- BMA_OC(p6,n,run,piA,bma_cut)
+BMASc6 <- BMA_OC(p6,n,run,piA,cut_bma)
