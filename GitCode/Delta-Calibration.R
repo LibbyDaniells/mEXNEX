@@ -8,7 +8,7 @@ library(matrixStats)
 
 
 #Independent Model
-Ind_cutoff <- function(p,n,run){
+Ind_cutoff <- function(p,n,run,pw){
   no.successes <- rep(0,length(p))
   cut <- matrix(,nrow=run,ncol=length(p))
   true <- rep(0,length(p))
@@ -29,7 +29,8 @@ Ind_cutoff <- function(p,n,run){
     }
     y <- no.successes
     N <- length(y)
-    jags.data <- list('n'=n,'y'=y,'N'=N)
+    mu <- log(pw/(1-pw))
+    jags.data <- list('n'=n,'y'=y,'N'=N,'mu'=mu)
     jags.fit <- jags.model(file='Ind.txt',data=jags.data,n.adapt=1000,n.chains=1)
     samplesEXNEX <- coda.samples(jags.fit,variable.names = c('p'),n.iter=M,silent=TRUE) #Fit the model
     samplesEXNEX <- as.data.frame(samplesEXNEX[[1]])
@@ -97,34 +98,14 @@ CBHM_cutoff <- function(p,n,run,a,b){
     }
     y <- no.successes
     N <- length(p)
-    O0 <- n-y #Observed failures
-    O1 <- y #Observed successes
-    E0 <- c() #Expected failures
-    E1 <- c() #Expected successes
-    for(k in 1:length(n)){
-      E0[k] <- n[k]*((sum(n)-sum(y))/sum(n))
-      E1[k] <- n[k]*((sum(y))/sum(n))}
-    if(sum(E1==0)){
-      Test <- 0
-    }else{
-      first <- c()
-      last <- c()
-      for(o in 1:length(p)){
-        first[o] <- (O0[o]-E0[o])^2/E0[o]
-        last[o] <- (O1[o]-E1[o])^2/E1[o]
-      }
-      Test <- sum(first)+sum(last) #Chi-squared test statistic for homogeneity 
-    }
-    if(Test!=0){ #Sigma!=0
-      sigma <- exp(a+b*log(Test))
+    phat <- sum(y)/sum(n)
+    obs <- cbind(y,n-y)
+    E <- cbind(n*phat,n*(1-phat))
+    Test <- sum((abs(obs-E))^2/E)
+    if(is.nan(Test)|(Test<1)){Test <- 1}
+    sigma <- exp(a+b*log(Test))
       jags.data <- list('n'=n,'y'=y,'N'=N,'sigma2'=sigma)
       jags.fit <- jags.model(file='CBHM.txt',data=jags.data,n.adapt=1000,n.chains=1)
-      samplesCBHM <- coda.samples(jags.fit,variable.names = c('p'),n.iter=M,silent=TRUE)
-      samplesCBHM <- as.data.frame(samplesCBHM[[1]])
-      pmat <- as.matrix(samplesCBHM[,1:length(p)])}
-    else{ #Sigma=0 
-      jags.data <- list('n'=n,'y'=y,'N'=N)
-      jags.fit <- jags.model(file='CBHMNoSigma.txt',data=jags.data,n.adapt=1000,n.chains=1) #akin to pooled analysis
       samplesCBHM <- coda.samples(jags.fit,variable.names = c('p'),n.iter=M,silent=TRUE)
       samplesCBHM <- as.data.frame(samplesCBHM[[1]])
       pmat <- as.matrix(samplesCBHM[,1:length(p)])}
@@ -156,8 +137,8 @@ EXNEX_cutoff <- function(p,n,run,pw){
       return(fun)
     }
     y <- no.successes
-    nexmu <- log(pw/(1-pw)) #NEX mu parameter
-    nexsigma <- (1/pw)+(1/(1-pw)) #NEX sigma parameter
+    nexmu <- rep(log(pw/(1-pw)),5) #NEX mu parameter
+    nexsigma <- rep((1/pw)+(1/(1-pw)),5) #NEX sigma parameter
     prob <- c(0.5,0.5) #Fixed weights
     N <- length(p)
     jags.data <- list('n'=n,'y'=y,'N'=N,'nexmu'=nexmu,'nexsigma'=nexsigma,'prob'=prob)
@@ -247,8 +228,8 @@ mEXNEX_cutoff <- function(p,n,run,pw,c){
       return(fun)
     }
     y <- no.successes
-    nexmu <- log(pw/(1-pw)) #NEX mu parameter
-    nexsigma <- (1/pw)+(1/(1-pw)) #NEX sigma parameter
+    nexmu <- rep(log(pw/(1-pw)),5) #NEX mu parameter
+    nexsigma <- rep((1/pw)+(1/(1-pw)),5) #NEX sigma parameter
     prob <- pi_fun_H(y,n,c) #Compute the probability vector using the Hellinger distances
     prob <- cbind(prob,1-prob)
     N <- length(p)
@@ -305,8 +286,8 @@ mEXNEXmin_cutoff <- function(p,n,run,pw){
       return(fun)
     }
     y <- no.successes
-    nexmu <- log(pw/(1-pw)) #NEX mu parameter
-    nexsigma <- (1/pw)+(1/(1-pw)) #NEX sigma parameter
+    nexmu <- rep(log(pw/(1-pw)),5) #NEX mu parameter
+    nexsigma <- rep((1/pw)+(1/(1-pw)),5) #NEX sigma parameter
     prob <- pi_fun_H_min(y,n) #Probability vector using minimum Hellinger distances
     prob <- cbind(prob,1-prob)
     N <- length(p)
@@ -433,12 +414,12 @@ run <- 10000
 a <- -7.248794
 b <- 5.857633
 
-IndCut <- Ind_cutoff(p,n,run)
+IndCut <- Ind_cutoff(p,n,run,pw=0.35)
 BHMCut <- BHM_cutoff(p,n,run)
 CBHMCut <- CBHM_cutoff(p,n,run,a,b)
 EXNEXCut <- EXNEX_cutoff(p,n,run,pw)
-mEXNEXCut <- mEXNEX_cutoff(p,n,run,pw,0.1)
-mEXNEXcCut <- mEXNEX_cutoff(p,n,run,pw,0.05)
+mEXNEXCut <- mEXNEX_cutoff(p,n,run,pw,1/13)
+mEXNEXcCut <- mEXNEX_cutoff(p,n,run,pw,0)
 mEXNEXminCut <- mEXNEXmin_cutoff(p,n,run,pw)
 BMACut <- BMA_cutoff(p,n,run,piA)
 
