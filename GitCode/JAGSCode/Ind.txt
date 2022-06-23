@@ -1,6 +1,7 @@
 model{
  for(k in 1:N){
   y[k] ~ dbin(p[k],n[k])
-  p[k] ~ dbeta(1,1)
+  p[k] <- exp(theta[k])/(1+exp(theta[k]))
+  theta[k] ~ dnorm(mu,1/100)
  }
 }
