@@ -80,8 +80,8 @@ mEXNEX_cutoff <- function(p,n,run,pw,c){
       return(fun)
     }
     y <- no.successes
-    nexmu <- log(pw/(1-pw)) #NEX mu parameter
-    nexsigma <- (1/pw)+(1/(1-pw)) #NEX sigma parameter
+    nexmu <- rep(log(pw/(1-pw)),length(p)) #NEX mu parameter
+    nexsigma <- rep((1/pw)+(1/(1-pw)),length(p)) #NEX sigma parameter
     prob <- pi_fun_H(y,n,c) #Compute the probability vector using the Hellinger distances
     prob <- cbind(prob,1-prob)
     N <- length(p)
@@ -97,11 +97,11 @@ mEXNEX_cutoff <- function(p,n,run,pw,c){
   return(cut_off)
 }
 
-c <- c(0,0.05,0.1,0.15,0.2,0.25)
+c <- c(0,1/13,2/13,3/13,4/13)
 p <- rep(0.15,5)
 n <- rep(13,5)
 pw <- rep(0.35,5)
-run <- 10
+run <- 10000
 cut <- matrix(,nrow=length(c),ncol=length(p))
 for(i in 1:length(c)){
   cut[i,] <- mEXNEX_cutoff(p,n,run,pw,c[i])
@@ -127,8 +127,8 @@ mEXNEX_OC <- function(p,n,cut_mexnex,run,pw,c){
       return(fun)
     }
     y <- no.successes
-    nexmu <- log(pw/(1-pw)) #NEX mu parameter
-    nexsigma <- (1/pw)+(1/(1-pw)) #NEX sigma parameter
+    nexmu <- rep(log(pw/(1-pw)),length(p)) #NEX mu parameter
+    nexsigma <- rep((1/pw)+(1/(1-pw)),length(p)) #NEX sigma parameter
     prob <- pi_fun_H(y,n,c) #Compute EX/NEX probabilities using averaged Hellinger distances
     prob <- cbind(prob,1-prob)
     N <- length(p)
@@ -177,7 +177,7 @@ p5 <- c(0.45,0.45,0.45,0.45,0.15)
 p6 <- c(0.45,0.45,0.45,0.45,0.45)
 n <- rep(13,5)
 pw <- rep(0.35,5)
-run <- 10
+run <- 10000
 
 #Scenario 1
 Reject <- matrix(,nrow=length(c),ncol=length(p1))
@@ -239,7 +239,7 @@ for(i in 1:length(c)){
 }
 Sc5 <- data.frame(Cuts=cut,Reject=Reject,Perfect=Perfect,FWER=FWER)
 
-#Scenario 1
+#Scenario 6
 Reject <- matrix(,nrow=length(c),ncol=length(p1))
 Perfect <- c()
 for(i in 1:length(c)){
