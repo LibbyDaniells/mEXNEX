@@ -2,7 +2,7 @@ model{
  for(k in 1:N){
  y[k] ~ dbin(p[k],n[k])
  p[k] <- exp(theta[k])/(1+exp(theta[k]))
- theta[k] ~ dnorm(mu,1/sigma2)
+ theta[k] ~ dnorm(mu,1/(sigma)^2)
  }
  mu ~ dnorm(-1.34,(1/100))
  sigma2 ~ dt(0,1/(1^2),1)T(0,)
