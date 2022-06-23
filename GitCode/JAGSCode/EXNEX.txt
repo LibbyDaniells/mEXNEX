@@ -1,8 +1,8 @@
 model{
  mue ~ dnorm(-1.34,(1/100))
- sigmae2 ~ dnorm(0,1)I(0,)
+ sigmae2 ~ dnorm(0,1)I(0.0001,)
  for(k in 1:N){
- Theta[1,k] ~ dnorm(mue,1/sigmae2)
+ Theta[1,k] ~ dnorm(mue,1/(sigmae^2))
  Theta[2,k] ~ dnorm(nexmu[k],1/nexsigma[k])
  weight[k] ~ dcat(prob[1:2])
  theta[k] <- Theta[weight[k],k]
