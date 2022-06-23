@@ -8,7 +8,7 @@ library(matrixStats)
 #Delta values calibrated in the Delta-Calibration.R code.
 
 #Independent Model
-Ind_OC <- function(p,n,cut_ind,run){
+Ind_OC <- function(p,n,cut_ind,run,pw){
   no.successes <- rep(0,length(p))
   hypo <- matrix(,nrow=run,ncol=length(p))
   true <- rep(0,length(p))
@@ -29,7 +29,8 @@ Ind_OC <- function(p,n,cut_ind,run){
     }
     y <- no.successes
     N <- length(p)
-    jags.data <- list('n'=n,'y'=y,'N'=N)
+    mu <- log(pw/(1-pw))
+    jags.data <- list('n'=n,'y'=y,'N'=N,'mu'=mu)
     jags.fit <- jags.model(file='Ind.txt',data=jags.data,n.adapt=1000,n.chains=1)
     samplesInd <- coda.samples(jags.fit,variable.names = c('p'),n.iter=M,silent=TRUE) #Fit the model
     samplesInd <- as.data.frame(samplesInd[[1]])
@@ -147,38 +148,18 @@ CBHM_OC <- function(p,n,cut_cbhm,run,a,b){
     }
     y <- no.successes
     N <- length(p)
-    O0 <- n-y #Observed failures
-    O1 <- y #Observed successes
-    E0 <- c() #Expected failures
-    E1 <- c() #Expected successes
-    for(k in 1:length(n)){
-    E0[k] <- n[k]*((sum(n)-sum(y))/sum(n))
-    E1[k] <- n[k]*((sum(y))/sum(n))}
-    if(sum(E1==0)){
-      Test <- 0
-    }else{
-      first <- c()
-      last <- c()
-      for(o in 1:length(p)){
-        first[o] <- (O0[o]-E0[o])^2/E0[o]
-        last[o] <- (O1[o]-E1[o])^2/E1[o]
-      }
-      Test <- sum(first)+sum(last) #Chi squared test statistic for homogeneity 
-    }
-    if(Test!=0){
-      sigma <- exp(a+b*log(Test))
+    phat <- sum(y)/sum(n)
+    obs <- cbind(y,n-y)
+    E <- cbind(n*phat,n*(1-phat))
+    Test <- sum((abs(obs-E))^2/E)
+    if(is.nan(Test)|(Test<1)){Test <- 1}
+    sigma <- exp(a+b*log(Test))
       jags.data <- list('n'=n,'y'=y,'N'=N,'sigma2'=sigma)
       jags.fit <- jags.model(file='CBHM.txt',data=jags.data,n.adapt=1000,n.chains=1)
       samplesCBHM <- coda.samples(jags.fit,variable.names = c('p'),n.iter=M,silent=TRUE)
       samplesCBHM <- as.data.frame(samplesCBHM[[1]])
-      pmat <- as.matrix(samplesCBHM[,1:length(p)])}
-    else{
-      jags.data <- list('n'=n,'y'=y,'N'=N)
-      jags.fit <- jags.model(file='CBHMNoSigma.txt',data=jags.data,n.adapt=1000,n.chains=1)
-      samplesCBHM <- coda.samples(jags.fit,variable.names = c('p'),n.iter=M,silent=TRUE)
-      samplesCBHM <- as.data.frame(samplesCBHM[[1]])
-      pmat <- as.matrix(samplesCBHM[,1:length(p)])}
-    hypo[j,] <- as.integer(apply(pmat,2,Fun)>cut_cbhm) #Accept/reject the null hypothesis
+      pmat <- as.matrix(samplesCBHM[,1:length(p)])
+    hypo[j,] <- as.integer(apply(pmat,2,Fun)>cut_cbhm)
     print(j)
   }
   perfect <- 0
@@ -623,71 +604,71 @@ b <- 5.857633
 
 #Cut-Off Values 
 #Obtained using the Delta-Calibration.R code
-cut_ind <- 0.951162
-cut_bhm <- 0.80945
-cut_cbhm <- 0.894508
-cut_exnex <- 0.877432
-cut_mexnexc <- 0.919946
-cut_mexnex <- 0.881284
-cut_mexnexmin <- 0.839586
-cut_bma <- 0.8709033
+cut_ind <- 0.9052
+cut_bhm <- 0.8308675
+cut_cbhm <- 0.907224
+cut_exnex <- 0.867792
+cut_mexnexc <- 0.919842
+cut_mexnex <- 0.883326
+cut_mexnexmin <- 0.83471
+cut_bma <- 0.895
 
 #Scenario 1
-IndSc1 <- Ind_OC(p1,n,cut_ind,run)
+IndSc1 <- Ind_OC(p1,n,cut_ind,run,pw=0.35)
 BHMSc1 <- BHM_OC(p1,n,cut_bhm,run)
 CBHMSc1 <- CBHM_OC(p1,n,cut_cbhm,run,a,b)
 EXNEXSc1 <- EXNEX_OC(p1,n,cut_exnex,run,pw)
-mEXNEXcSc1 <- mEXNEX_OC(p1,n,cut_mexnexc,run,pw,0.05)
-mEXNEXSc1 <- mEXNEX_OC(p1,n,cut_mexnex,run,pw,0.1)
+mEXNEXcSc1 <- mEXNEX_OC(p1,n,cut_mexnexc,run,pw,0)
+mEXNEXSc1 <- mEXNEX_OC(p1,n,cut_mexnex,run,pw,1/13)
 mEXNEXminSc1 <- mEXNEXmin_OC(p1,n,cut_mexnexmin,run,pw)
 BMASc1 <- BMA_OC(p1,n,run,piA,cut_bma)
 
 #Scenario 2
-IndSc2 <- Ind_OC(p2,n,cut_ind,run)
+IndSc2 <- Ind_OC(p2,n,cut_ind,run,pw=0.35)
 BHMSc2 <- BHM_OC(p2,n,cut_bhm,run)
 CBHMSc2 <- CBHM_OC(p2,n,cut_cbhm,run,a,b)
 EXNEXSc2 <- EXNEX_OC(p2,n,cut_exnex,run,pw)
-mEXNEXcSc2 <- mEXNEX_OC(p2,n,cut_mexnexc,run,pw,0.05)
-mEXNEXSc2 <- mEXNEX_OC(p2,n,cut_mexnex,run,pw,0.1)
+mEXNEXcSc2 <- mEXNEX_OC(p2,n,cut_mexnexc,run,pw,0)
+mEXNEXSc2 <- mEXNEX_OC(p2,n,cut_mexnex,run,pw,1/13)
 mEXNEXminSc2 <- mEXNEXmin_OC(p2,n,cut_mexnexmin,run,pw)
 BMASc2 <- BMA_OC(p2,n,run,piA,cut_bma)
 
 #Scenario 3
-IndSc3 <- Ind_OC(p3,n,cut_ind,run)
+IndSc3 <- Ind_OC(p3,n,cut_ind,run,pw=0.35)
 BHMSc3 <- BHM_OC(p3,n,cut_bhm,run)
 CBHMSc3 <- CBHM_OC(p3,n,cut_cbhm,run,a,b)
 EXNEXSc3 <- EXNEX_OC(p3,n,cut_exnex,run,pw)
-mEXNEXcSc3 <- mEXNEX_OC(p3,n,cut_mexnexc,run,pw,0.05)
-mEXNEXSc3 <- mEXNEX_OC(p3,n,cut_mexnex,run,pw,0.1)
+mEXNEXcSc3 <- mEXNEX_OC(p3,n,cut_mexnexc,run,pw,0)
+mEXNEXSc3 <- mEXNEX_OC(p3,n,cut_mexnex,run,pw,1/13)
 mEXNEXminSc3 <- mEXNEXmin_OC(p3,n,cut_mexnexmin,run,pw)
 BMASc3 <- BMA_OC(p3,n,run,piA,cut_bma)
 
 #Scenario 4
-IndSc4 <- Ind_OC(p4,n,cut_ind,run)
+IndSc4 <- Ind_OC(p4,n,cut_ind,run,pw=0.35)
 BHMSc4 <- BHM_OC(p4,n,cut_bhm,run)
 CBHMSc4 <- CBHM_OC(p4,n,cut_cbhm,run,a,b)
 EXNEXSc4 <- EXNEX_OC(p4,n,cut_exnex,run,pw)
-mEXNEXcSc4 <- mEXNEX_OC(p4,n,cut_mexnexc,run,pw,0.05)
-mEXNEXSc4 <- mEXNEX_OC(p4,n,cut_mexnex,run,pw,0.1)
+mEXNEXcSc4 <- mEXNEX_OC(p4,n,cut_mexnexc,run,pw,0)
+mEXNEXSc4 <- mEXNEX_OC(p4,n,cut_mexnex,run,pw,1/13)
 mEXNEXminSc4 <- mEXNEXmin_OC(p4,n,cut_mexnexmin,run,pw)
 BMASc4 <- BMA_OC(p4,n,run,piA,cut_bma)
 
 #Scenario 5
-IndSc5 <- Ind_OC(p5,n,cut_ind,run)
+IndSc5 <- Ind_OC(p5,n,cut_ind,run,pw=0.35)
 BHMSc5 <- BHM_OC(p5,n,cut_bhm,run)
 CBHMSc5 <- CBHM_OC(p5,n,cut_cbhm,run,a,b)
 EXNEXSc5 <- EXNEX_OC(p5,n,cut_exnex,run,pw)
-mEXNEXcSc5 <- mEXNEX_OC(p5,n,cut_mexnexc,run,pw,0.05)
-mEXNEXSc5 <- mEXNEX_OC(p5,n,cut_mexnex,run,pw,0.1)
+mEXNEXcSc5 <- mEXNEX_OC(p5,n,cut_mexnexc,run,pw,0)
+mEXNEXSc5 <- mEXNEX_OC(p5,n,cut_mexnex,run,pw,1/13)
 mEXNEXminSc5 <- mEXNEXmin_OC(p5,n,cut_mexnexmin,run,pw)
 BMASc5 <- BMA_OC(p5,n,run,piA,cut_bma)
 
 #Scenario 6
-IndSc6 <- Ind_OC(p6,n,cut_ind,run)
+IndSc6 <- Ind_OC(p6,n,cut_ind,run,pw=0.35)
 BHMSc6 <- BHM_OC(p6,n,cut_bhm,run)
 CBHMSc6 <- CBHM_OC(p6,n,cut_cbhm,run,a,b)
 EXNEXSc6 <- EXNEX_OC(p6,n,cut_exnex,run,pw)
-mEXNEXcSc6 <- mEXNEX_OC(p6,n,cut_mexnexc,run,pw,0.05)
-mEXNEXSc6 <- mEXNEX_OC(p6,n,cut_mexnex,run,pw,0.1)
+mEXNEXcSc6 <- mEXNEX_OC(p6,n,cut_mexnexc,run,pw,0)
+mEXNEXSc6 <- mEXNEX_OC(p6,n,cut_mexnex,run,pw,1/13)
 mEXNEXminSc6 <- mEXNEXmin_OC(p6,n,cut_mexnexmin,run,pw)
 BMASc6 <- BMA_OC(p6,n,run,piA,cut_bma)
