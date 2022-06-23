@@ -137,8 +137,8 @@ EXNEX_cutoff <- function(p,n,run,pw){
       return(fun)
     }
     y <- no.successes
-    nexmu <- rep(log(pw/(1-pw)),5) #NEX mu parameter
-    nexsigma <- rep((1/pw)+(1/(1-pw)),5) #NEX sigma parameter
+    nexmu <- rep(log(pw/(1-pw)),length(p)) #NEX mu parameter
+    nexsigma <- rep((1/pw)+(1/(1-pw)),length(p)) #NEX sigma parameter
     prob <- c(0.5,0.5) #Fixed weights
     N <- length(p)
     jags.data <- list('n'=n,'y'=y,'N'=N,'nexmu'=nexmu,'nexsigma'=nexsigma,'prob'=prob)
@@ -228,8 +228,8 @@ mEXNEX_cutoff <- function(p,n,run,pw,c){
       return(fun)
     }
     y <- no.successes
-    nexmu <- rep(log(pw/(1-pw)),5) #NEX mu parameter
-    nexsigma <- rep((1/pw)+(1/(1-pw)),5) #NEX sigma parameter
+    nexmu <- rep(log(pw/(1-pw)),length(p)) #NEX mu parameter
+    nexsigma <- rep((1/pw)+(1/(1-pw)),length(p)) #NEX sigma parameter
     prob <- pi_fun_H(y,n,c) #Compute the probability vector using the Hellinger distances
     prob <- cbind(prob,1-prob)
     N <- length(p)
@@ -286,8 +286,8 @@ mEXNEXmin_cutoff <- function(p,n,run,pw){
       return(fun)
     }
     y <- no.successes
-    nexmu <- rep(log(pw/(1-pw)),5) #NEX mu parameter
-    nexsigma <- rep((1/pw)+(1/(1-pw)),5) #NEX sigma parameter
+    nexmu <- rep(log(pw/(1-pw)),length(p)) #NEX mu parameter
+    nexsigma <- rep((1/pw)+(1/(1-pw)),length(p)) #NEX sigma parameter
     prob <- pi_fun_H_min(y,n) #Probability vector using minimum Hellinger distances
     prob <- cbind(prob,1-prob)
     N <- length(p)
