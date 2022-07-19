@@ -4,6 +4,6 @@ model{
  p[k] <- exp(theta[k])/(1+exp(theta[k]))
  theta[k] ~ dnorm(mu,1/(sigma)^2)
  }
- mu ~ dnorm(-1.34,(1/100))
+ mu ~ dnorm(-0.1734601,(1/100))
  sigma ~ dt(0,1/(25^2),1)T(0,)
 }
