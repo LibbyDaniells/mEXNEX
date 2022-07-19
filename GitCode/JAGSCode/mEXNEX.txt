@@ -1,5 +1,5 @@
 model{
- mue ~ dnorm(-1.34601,(1/100))
+ mue ~ dnorm(-1.734601,(1/100))
  sigmae2 ~ dnorm(0,1)I(0,)
  for(k in 1:N){
  Theta[1,k] ~ dnorm(mue,1/sigmae)
