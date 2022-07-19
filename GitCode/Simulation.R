@@ -12,6 +12,7 @@ Ind_OC <- function(p,n,cut_ind,run,pw){
   no.successes <- rep(0,length(p))
   hypo <- matrix(,nrow=run,ncol=length(p))
   true <- rep(0,length(p))
+  pointests <- matrix(,nrow=run,ncol=length(p))
   for(l in 1:length(p)){
     if(p[l]<=0.15){
       true[l] <- 0
@@ -34,6 +35,7 @@ Ind_OC <- function(p,n,cut_ind,run,pw){
     jags.fit <- jags.model(file='Ind.txt',data=jags.data,n.adapt=1000,n.chains=1)
     samplesInd <- coda.samples(jags.fit,variable.names = c('p'),n.iter=M,silent=TRUE) #Fit the model
     samplesInd <- as.data.frame(samplesInd[[1]])
+    pointests[j,] <- colMeans(samplesInd)
     pmat <- as.matrix(samplesInd[,1:length(p)])
     hypo[j,] <- as.integer(apply(pmat,2,Fun)>cut_ind) #Reject/accept the null hypothesis
     print(j)
@@ -63,7 +65,9 @@ Ind_OC <- function(p,n,cut_ind,run,pw){
     }
     fwer <- fwer/run
   }
-  my_list <- list('Error Rates'=colMeans(hypo),'Perfect'=perfect/run,'FWER'=fwer)
+  Pointmeans <- colMeans(pointests)
+  Pointssd <- apply(pointests,2,sd)
+  my_list <- list('Point Estimate Means'=Pointmeans,'Point Estimate Sds'=Pointssd,'Error Rates'=colMeans(hypo),'Perfect'=perfect/run,'FWER'=fwer)
   return(my_list)
 }
 
@@ -72,6 +76,7 @@ BHM_OC <- function(p,n,cut_bhm,run){
   no.successes <- rep(0,length(p))
   hypo <- matrix(,nrow=run,ncol=length(p))
   true <- rep(0,length(p))
+  pointests <- matrix(,nrow=run,ncol=length(p))
   for(l in 1:length(p)){
     if(p[l]<=0.15){
       true[l] <- 0
@@ -93,6 +98,7 @@ BHM_OC <- function(p,n,cut_bhm,run){
     jags.fit <- jags.model(file='BHM.txt',data=jags.data,n.adapt=1000,n.chains=1)
     samplesBHM <- coda.samples(jags.fit,variable.names = c('p'),n.iter=M,silent=TRUE) #Fit the model
     samplesBHM <- as.data.frame(samplesBHM[[1]])
+    pointests[j,] <- colMeans(samplesBHM)
     pmat <- as.matrix(samplesBHM[,1:length(p)])
     hypo[j,] <- as.integer(apply(pmat,2,Fun)>cut_bhm) #Accept/reject the null hypothesis
     print(j)
@@ -122,7 +128,9 @@ BHM_OC <- function(p,n,cut_bhm,run){
     }
     fwer <- fwer/run
   }
-  my_list <- list('Error Rates'=colMeans(hypo),'Perfect'=perfect/run,'FWER'=fwer)
+  Pointmeans <- colMeans(pointests)
+  Pointssd <- apply(pointests,2,sd)
+  my_list <- list('Point Estimate Means'=Pointmeans,'Point Estimate Sds'=Pointssd,'Error Rates'=colMeans(hypo),'Perfect'=perfect/run,'FWER'=fwer)
   return(my_list)
 }
 
@@ -131,6 +139,7 @@ CBHM_OC <- function(p,n,cut_cbhm,run,a,b){
   no.successes <- rep(0,length(p))
   hypo <- matrix(,nrow=run,ncol=length(p))
   true <- rep(0,length(p))
+  pointests <- matrix(,nrow=run,ncol=length(p))
   for(l in 1:length(p)){
     if(p[l]<=0.15){
       true[l] <- 0
@@ -158,6 +167,7 @@ CBHM_OC <- function(p,n,cut_cbhm,run,a,b){
       jags.fit <- jags.model(file='CBHM.txt',data=jags.data,n.adapt=1000,n.chains=1)
       samplesCBHM <- coda.samples(jags.fit,variable.names = c('p'),n.iter=M,silent=TRUE)
       samplesCBHM <- as.data.frame(samplesCBHM[[1]])
+      pointests[j,] <- colMeans(samplesCBHM)
       pmat <- as.matrix(samplesCBHM[,1:length(p)])
     hypo[j,] <- as.integer(apply(pmat,2,Fun)>cut_cbhm)
     print(j)
@@ -187,7 +197,9 @@ CBHM_OC <- function(p,n,cut_cbhm,run,a,b){
     }
     fwer <- fwer/run
   }
-  my_list <- list('Error Rates'=colMeans(hypo),'Perfect'=perfect/run,'FWER'=fwer)
+  Pointmeans <- colMeans(pointests)
+  Pointssd <- apply(pointests,2,sd)
+  my_list <- list('Point Estimate Means'=Pointmeans,'Point Estimate Sds'=Pointssd,'Error Rates'=colMeans(hypo),'Perfect'=perfect/run,'FWER'=fwer)
   return(my_list)
 }
 
@@ -196,6 +208,7 @@ EXNEX_OC <- function(p,n,cut_exnex,run,pw){
   no.successes <- rep(0,length(p))
   hypo <- matrix(,nrow=run,ncol=length(p))
   true <- rep(0,length(p))
+  pointests <- matrix(,nrow=run,ncol=length(p))
   for(l in 1:length(p)){
     if(p[l]<=0.15){
       true[l] <- 0
@@ -220,6 +233,7 @@ EXNEX_OC <- function(p,n,cut_exnex,run,pw){
     jags.fit <- jags.model(file='EXNEX.txt',data=jags.data,n.adapt=1000,n.chains=1)
     samplesEXNEX <- coda.samples(jags.fit,variable.names = c('p'),n.iter=M,silent=TRUE)
     samplesEXNEX <- as.data.frame(samplesEXNEX[[1]])
+    pointests[j,] <- colMeans(samplesEXNEX)
     pmat <- as.matrix(samplesEXNEX[,1:length(p)])
     hypo[j,] <- as.integer(apply(pmat,2,Fun)>cut_exnex) #Accept/reject the null hypothesis
     print(j)
@@ -249,7 +263,9 @@ EXNEX_OC <- function(p,n,cut_exnex,run,pw){
     }
     fwer <- fwer/run
   }
-  my_list <- list('Error Rates'=colMeans(hypo),'Perfect'=perfect/run,'FWER'=fwer)
+  Pointmeans <- colMeans(pointests)
+  Pointssd <- apply(pointests,2,sd)
+  my_list <- list('Point Estimate Means'=Pointmeans,'Point Estimate Sds'=Pointssd,'Error Rates'=colMeans(hypo),'Perfect'=perfect/run,'FWER'=fwer)
   return(my_list)
 }
 
@@ -312,6 +328,7 @@ mEXNEX_OC <- function(p,n,cut_mexnex,run,pw,c){
   no.successes <- rep(0,length(p))
   hypo <- matrix(,nrow=run,ncol=length(p))
   true <- rep(0,length(p))
+  pointests <- matrix(,nrow=run,ncol=length(p))
   for(l in 1:length(p)){
     if(p[l]<=0.15){
       true[l] <- 0
@@ -337,6 +354,7 @@ mEXNEX_OC <- function(p,n,cut_mexnex,run,pw,c){
     jags.fit <- jags.model(file='mEXNEX.txt',data=jags.data,n.adapt=1000,n.chains=1)
     samplesmEXNEX <- coda.samples(jags.fit,variable.names = c('p'),n.iter=M,silent=TRUE)
     samplesmEXNEX <- as.data.frame(samplesmEXNEX[[1]])
+    pointests[j,] <- colMeans(samplesmEXNEX)
     pmat <- as.matrix(samplesmEXNEX[,1:length(p)])
     hypo[j,] <- as.integer(apply(pmat,2,Fun)>cut_mexnex) #Accept/reject the null hypothesis
     print(j)
@@ -366,7 +384,9 @@ mEXNEX_OC <- function(p,n,cut_mexnex,run,pw,c){
     }
     fwer <- fwer/run
   }
-  my_list <- list('Error Rates'=colMeans(hypo),'Perfect'=perfect/run,'FWER'=fwer)
+  Pointmeans <- colMeans(pointests)
+  Pointssd <- apply(pointests,2,sd)
+  my_list <- list('Point Estimate Means'=Pointmeans,'Point Estimate Sds'=Pointssd,'Error Rates'=colMeans(hypo),'Perfect'=perfect/run,'FWER'=fwer)
   return(my_list)
 }
 
@@ -396,6 +416,7 @@ mEXNEXmin_OC <- function(p,n,cut_mexnexmin,run,pw){
   no.successes <- rep(0,length(p))
   hypo <- matrix(,nrow=run,ncol=length(p))
   true <- rep(0,length(p))
+  pointests <- matrix(,nrow=run,ncol=length(p))
   for(l in 1:length(p)){
     if(p[l]<=0.15){
       true[l] <- 0
@@ -421,6 +442,7 @@ mEXNEXmin_OC <- function(p,n,cut_mexnexmin,run,pw){
     jags.fit <- jags.model(file='mEXNEX.txt',data=jags.data,n.adapt=1000,n.chains=1)
     samplesmEXNEXmin <- coda.samples(jags.fit,variable.names = c('p'),n.iter=M,silent=TRUE)
     samplesmEXNEXmin <- as.data.frame(samplesmEXNEXmin[[1]])
+    pointests[j,] <- colMeans(samplesmEXNEXmin)
     pmat <- as.matrix(samplesmEXNEXmin[,1:length(p)])
     hypo[j,] <- as.integer(apply(pmat,2,Fun)>cut_mexnexmin) #Accept/reject the null hypothesis
     print(j)
@@ -450,7 +472,9 @@ mEXNEXmin_OC <- function(p,n,cut_mexnexmin,run,pw){
     }
     fwer <- fwer/run
   }
-  my_list <- list('Error Rates'=colMeans(hypo),'Perfect'=perfect/run,'FWER'=fwer)
+  Pointmeans <- colMeans(pointests)
+  Pointssd <- apply(pointests,2,sd)
+  my_list <- list('Point Estimate Means'=Pointmeans,'Point Estimate Sds'=Pointssd,'Error Rates'=colMeans(hypo),'Perfect'=perfect/run,'FWER'=fwer)
   return(my_list)
 }
 
@@ -546,6 +570,7 @@ BMA_OC <- function(p,n,run,piA,cut){
   no.successes <- rep(0,length(p))
   hypo <- matrix(,nrow=run,ncol=length(p))
   true <- rep(0,length(p))
+  pointests <- matrix(,nrow=run,ncol=length(p))
   for(l in 1:length(p)){
     if(p[l]<=0.2){
       true[l] <- 0
@@ -557,6 +582,7 @@ BMA_OC <- function(p,n,run,piA,cut){
     for(i in 1:length(p)){
       no.successes[i] <- rbinom(1,n[i],p[i])} #Generate data
     mod <- model_averaging(no.successes,n,piA,0.15) #Conduct Bayesian model averaging
+    pointests[j,] <- mod$Mean
     hypo[j,] <- as.numeric(mod$`Decision Probabilities`>cut_bma) #Accept/reject the null hypothesis
   }
   perfect <- 0
@@ -584,7 +610,9 @@ BMA_OC <- function(p,n,run,piA,cut){
     }
     fwer <- fwer/run
   }
-  my_list <- list('Error Rates'=colMeans(hypo),'Perfect'=perfect/run,'FWER'=fwer)
+  Pointmeans <- colMeans(pointests)
+  Pointssd <- apply(pointests,2,sd)
+  my_list <- list('Point Estimate Means'=Pointmeans,'Point Estimate Sds'=Pointssd,'Error Rates'=colMeans(hypo),'Perfect'=perfect/run,'FWER'=fwer)
   return(my_list)
 }
 
@@ -614,7 +642,7 @@ cut_mexnexmin <- 0.83471
 cut_bma <- 0.895
 
 #Scenario 1
-IndSc1 <- Ind_OC(p1,n,cut_ind,run,pw=0.35)
+IndSc1 <- Ind_OC(p1,n,cut_ind,run)
 BHMSc1 <- BHM_OC(p1,n,cut_bhm,run)
 CBHMSc1 <- CBHM_OC(p1,n,cut_cbhm,run,a,b)
 EXNEXSc1 <- EXNEX_OC(p1,n,cut_exnex,run,pw)
@@ -624,7 +652,7 @@ mEXNEXminSc1 <- mEXNEXmin_OC(p1,n,cut_mexnexmin,run,pw)
 BMASc1 <- BMA_OC(p1,n,run,piA,cut_bma)
 
 #Scenario 2
-IndSc2 <- Ind_OC(p2,n,cut_ind,run,pw=0.35)
+IndSc2 <- Ind_OC(p2,n,cut_ind,run)
 BHMSc2 <- BHM_OC(p2,n,cut_bhm,run)
 CBHMSc2 <- CBHM_OC(p2,n,cut_cbhm,run,a,b)
 EXNEXSc2 <- EXNEX_OC(p2,n,cut_exnex,run,pw)
@@ -634,7 +662,7 @@ mEXNEXminSc2 <- mEXNEXmin_OC(p2,n,cut_mexnexmin,run,pw)
 BMASc2 <- BMA_OC(p2,n,run,piA,cut_bma)
 
 #Scenario 3
-IndSc3 <- Ind_OC(p3,n,cut_ind,run,pw=0.35)
+IndSc3 <- Ind_OC(p3,n,cut_ind,run)
 BHMSc3 <- BHM_OC(p3,n,cut_bhm,run)
 CBHMSc3 <- CBHM_OC(p3,n,cut_cbhm,run,a,b)
 EXNEXSc3 <- EXNEX_OC(p3,n,cut_exnex,run,pw)
@@ -644,7 +672,7 @@ mEXNEXminSc3 <- mEXNEXmin_OC(p3,n,cut_mexnexmin,run,pw)
 BMASc3 <- BMA_OC(p3,n,run,piA,cut_bma)
 
 #Scenario 4
-IndSc4 <- Ind_OC(p4,n,cut_ind,run,pw=0.35)
+IndSc4 <- Ind_OC(p4,n,cut_ind,run)
 BHMSc4 <- BHM_OC(p4,n,cut_bhm,run)
 CBHMSc4 <- CBHM_OC(p4,n,cut_cbhm,run,a,b)
 EXNEXSc4 <- EXNEX_OC(p4,n,cut_exnex,run,pw)
@@ -654,7 +682,7 @@ mEXNEXminSc4 <- mEXNEXmin_OC(p4,n,cut_mexnexmin,run,pw)
 BMASc4 <- BMA_OC(p4,n,run,piA,cut_bma)
 
 #Scenario 5
-IndSc5 <- Ind_OC(p5,n,cut_ind,run,pw=0.35)
+IndSc5 <- Ind_OC(p5,n,cut_ind,run)
 BHMSc5 <- BHM_OC(p5,n,cut_bhm,run)
 CBHMSc5 <- CBHM_OC(p5,n,cut_cbhm,run,a,b)
 EXNEXSc5 <- EXNEX_OC(p5,n,cut_exnex,run,pw)
@@ -664,7 +692,7 @@ mEXNEXminSc5 <- mEXNEXmin_OC(p5,n,cut_mexnexmin,run,pw)
 BMASc5 <- BMA_OC(p5,n,run,piA,cut_bma)
 
 #Scenario 6
-IndSc6 <- Ind_OC(p6,n,cut_ind,run,pw=0.35)
+IndSc6 <- Ind_OC(p6,n,cut_ind,run)
 BHMSc6 <- BHM_OC(p6,n,cut_bhm,run)
 CBHMSc6 <- CBHM_OC(p6,n,cut_cbhm,run,a,b)
 EXNEXSc6 <- EXNEX_OC(p6,n,cut_exnex,run,pw)
