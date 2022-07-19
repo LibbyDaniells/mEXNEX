@@ -8,7 +8,7 @@ library(matrixStats)
 
 
 #Independent Model
-Ind_cutoff <- function(p,n,run,pw){
+Ind_cutoff <- function(p,n,run){
   no.successes <- rep(0,length(p))
   cut <- matrix(,nrow=run,ncol=length(p))
   true <- rep(0,length(p))
@@ -29,8 +29,7 @@ Ind_cutoff <- function(p,n,run,pw){
     }
     y <- no.successes
     N <- length(y)
-    mu <- log(pw/(1-pw))
-    jags.data <- list('n'=n,'y'=y,'N'=N,'mu'=mu)
+    jags.data <- list('n'=n,'y'=y,'N'=N)
     jags.fit <- jags.model(file='Ind.txt',data=jags.data,n.adapt=1000,n.chains=1)
     samplesEXNEX <- coda.samples(jags.fit,variable.names = c('p'),n.iter=M,silent=TRUE) #Fit the model
     samplesEXNEX <- as.data.frame(samplesEXNEX[[1]])
@@ -414,7 +413,7 @@ run <- 10000
 a <- -7.248794
 b <- 5.857633
 
-IndCut <- Ind_cutoff(p,n,run,pw=0.35)
+IndCut <- Ind_cutoff(p,n,run)
 BHMCut <- BHM_cutoff(p,n,run)
 CBHMCut <- CBHM_cutoff(p,n,run,a,b)
 EXNEXCut <- EXNEX_cutoff(p,n,run,pw)
